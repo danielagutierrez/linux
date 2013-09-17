@@ -3206,7 +3206,7 @@ static void __ieee80211_rx_handle_packet(struct ieee80211_hw *hw,
                         false, &lamt_elems);
                         lamt_rx_status->band);
         */
-      printk(KERN_DEBUG "##presponse;%s;%s;%u;%lu;nic_freq=%u;nic_band=%u;signal=%d;mactime=%llu;addr1=%pM;addr2=%pM;addr3=%pM;addr4=%pM;duration_id=%u;seq_ctrl=%x;retry=%u;timestamp=%llu;beacon_interval=%u;capability_info=%x##\n",
+      printk(KERN_DEBUG "##presponse;%s;%s;%u;%lu;nic_freq=%u;nic_band=%u;signal=%d;mactime=%llu;frame_control=%x;addr1=%pM;addr2=%pM;addr3=%pM;addr4=%pM;duration_id=%u;seq_ctrl=%u;retry=%u;timestamp=%llu;beacon_interval=%u;capability_info=%x##\n",
               // filename, function name, line number
               __FILE__, __func__, __LINE__,
 
@@ -3226,6 +3226,10 @@ static void __ieee80211_rx_handle_packet(struct ieee80211_hw *hw,
               // Function (TSF) timer when the first data symbol (MPDU)
               // arrived at the hardware
               (unsigned long long)lamt_rx_status->mactime,
+
+              // Frame control
+              // (__le16 => __u16 __bitwise __le16)
+              hdr->frame_control,
 
               // addr1, in a Probe Response should be de destination address
               hdr->addr1,
@@ -3250,7 +3254,7 @@ static void __ieee80211_rx_handle_packet(struct ieee80211_hw *hw,
 
               // timestamp in the PResp frame
               // __le64 => __u64 __bitwise __le64
-              lamt_mgmt->u.probe_resp.timestamp,
+              (unsigned long long)lamt_mgmt->u.probe_resp.timestamp,
 
               // beacon_interval
               // (__le16 => __u16 __bitwise __le16)
