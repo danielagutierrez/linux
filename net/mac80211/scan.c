@@ -26,7 +26,7 @@
 #include "mesh.h"
 
 #define IEEE80211_PROBE_DELAY (HZ / 1000)
-#define IEEE80211_CHANNEL_TIME (HZ / 5)
+#define IEEE80211_CHANNEL_TIME (HZ / 4)
 #define IEEE80211_PASSIVE_CHANNEL_TIME (HZ / 9)
 
 void ieee80211_rx_bss_put(struct ieee80211_local *local,
@@ -154,6 +154,13 @@ ieee80211_bss_info_update(struct ieee80211_local *local,
 
 void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 {
+    ////////////////
+    // LAMT
+    // Probe Request - Probe Response delay measurement
+
+    printk(KERN_DEBUG "##%s;%s;%u;%lu##\n", __FILE__, __func__, __LINE__, jiffies);
+    // End LAMT
+    
 	struct ieee80211_rx_status *rx_status = IEEE80211_SKB_RXCB(skb);
 	struct ieee80211_sub_if_data *sdata1, *sdata2;
 	struct ieee80211_mgmt *mgmt = (void *)skb->data;
@@ -402,7 +409,7 @@ static void ieee80211_scan_state_send_probe(struct ieee80211_local *local,
 	sdata = rcu_dereference_protected(local->scan_sdata,
 					  lockdep_is_held(&local->mtx));
 
-	for (i = 0; i < local->scan_req->n_ssids; i++)
+	for (i = 0; i < local->scan_req->n_ssids; i++) {
 		ieee80211_send_probe_req(
 			sdata, NULL,
 			local->scan_req->ssids[i].ssid,
@@ -410,6 +417,14 @@ static void ieee80211_scan_state_send_probe(struct ieee80211_local *local,
 			local->scan_req->ie, local->scan_req->ie_len,
 			local->scan_req->rates[band], false,
 			tx_flags, local->hw.conf.chandef.chan, true);
+
+        ////////////////
+        // LAMT
+        // Probe Request - Probe Response delay measurement
+
+        printk(KERN_DEBUG "##%s;%s;%u;%lu##\n", __FILE__, __func__, __LINE__, jiffies);
+        // End LAMT
+    }
 
 	/*
 	 * After sending probe requests, wait for probe responses
@@ -613,6 +628,13 @@ static void ieee80211_scan_state_decision(struct ieee80211_local *local,
 static void ieee80211_scan_state_set_channel(struct ieee80211_local *local,
 					     unsigned long *next_delay)
 {
+    ////////////////
+    // LAMT
+    // Probe Request - Probe Response delay measurement
+
+    printk(KERN_DEBUG "##%s;%s;%u;%lu##\n", __FILE__, __func__, __LINE__, jiffies);
+    // End LAMT
+
 	int skip;
 	struct ieee80211_channel *chan;
 
