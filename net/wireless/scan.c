@@ -59,6 +59,7 @@
 
 static void bss_free(struct cfg80211_internal_bss *bss)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_bss_ies *ies;
 
 	if (WARN_ON(atomic_read(&bss->hold)))
@@ -84,6 +85,7 @@ static void bss_free(struct cfg80211_internal_bss *bss)
 static inline void bss_ref_get(struct cfg80211_registered_device *dev,
 			       struct cfg80211_internal_bss *bss)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	lockdep_assert_held(&dev->bss_lock);
 
 	bss->refcount++;
@@ -98,6 +100,7 @@ static inline void bss_ref_get(struct cfg80211_registered_device *dev,
 static inline void bss_ref_put(struct cfg80211_registered_device *dev,
 			       struct cfg80211_internal_bss *bss)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	lockdep_assert_held(&dev->bss_lock);
 
 	if (bss->pub.hidden_beacon_bss) {
@@ -117,6 +120,7 @@ static inline void bss_ref_put(struct cfg80211_registered_device *dev,
 static bool __cfg80211_unlink_bss(struct cfg80211_registered_device *dev,
 				  struct cfg80211_internal_bss *bss)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	lockdep_assert_held(&dev->bss_lock);
 
 	if (!list_empty(&bss->hidden_list)) {
@@ -142,6 +146,7 @@ static bool __cfg80211_unlink_bss(struct cfg80211_registered_device *dev,
 static void __cfg80211_bss_expire(struct cfg80211_registered_device *dev,
 				  unsigned long expire_time)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_internal_bss *bss, *tmp;
 	bool expired = false;
 
@@ -163,6 +168,7 @@ static void __cfg80211_bss_expire(struct cfg80211_registered_device *dev,
 
 void ___cfg80211_scan_done(struct cfg80211_registered_device *rdev, bool leak)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_scan_request *request;
 	struct wireless_dev *wdev;
 #ifdef CONFIG_CFG80211_WEXT
@@ -225,6 +231,7 @@ void ___cfg80211_scan_done(struct cfg80211_registered_device *rdev, bool leak)
 
 void __cfg80211_scan_done(struct work_struct *wk)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_registered_device *rdev;
 
 	rdev = container_of(wk, struct cfg80211_registered_device,
@@ -237,6 +244,7 @@ void __cfg80211_scan_done(struct work_struct *wk)
 
 void cfg80211_scan_done(struct cfg80211_scan_request *request, bool aborted)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	trace_cfg80211_scan_done(request, aborted);
 	WARN_ON(request != wiphy_to_dev(request->wiphy)->scan_req);
 
@@ -248,6 +256,7 @@ EXPORT_SYMBOL(cfg80211_scan_done);
 
 void __cfg80211_sched_scan_results(struct work_struct *wk)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_registered_device *rdev;
 	struct cfg80211_sched_scan_request *request;
 
@@ -276,6 +285,7 @@ void __cfg80211_sched_scan_results(struct work_struct *wk)
 
 void cfg80211_sched_scan_results(struct wiphy *wiphy)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	trace_cfg80211_sched_scan_results(wiphy);
 	/* ignore if we're not scanning */
 	if (wiphy_to_dev(wiphy)->sched_scan_req)
@@ -286,6 +296,7 @@ EXPORT_SYMBOL(cfg80211_sched_scan_results);
 
 void cfg80211_sched_scan_stopped(struct wiphy *wiphy)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_registered_device *rdev = wiphy_to_dev(wiphy);
 
 	trace_cfg80211_sched_scan_stopped(wiphy);
@@ -325,6 +336,7 @@ int __cfg80211_stop_sched_scan(struct cfg80211_registered_device *rdev,
 void cfg80211_bss_age(struct cfg80211_registered_device *dev,
                       unsigned long age_secs)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_internal_bss *bss;
 	unsigned long age_jiffies = msecs_to_jiffies(age_secs * MSEC_PER_SEC);
 
@@ -336,11 +348,13 @@ void cfg80211_bss_age(struct cfg80211_registered_device *dev,
 
 void cfg80211_bss_expire(struct cfg80211_registered_device *dev)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	__cfg80211_bss_expire(dev, jiffies - IEEE80211_SCAN_RESULT_EXPIRE);
 }
 
 const u8 *cfg80211_find_ie(u8 eid, const u8 *ies, int len)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	while (len > 2 && ies[0] != eid) {
 		len -= ies[1] + 2;
 		ies += ies[1] + 2;
@@ -356,6 +370,7 @@ EXPORT_SYMBOL(cfg80211_find_ie);
 const u8 *cfg80211_find_vendor_ie(unsigned int oui, u8 oui_type,
 				  const u8 *ies, int len)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct ieee80211_vendor_ie *ie;
 	const u8 *pos = ies, *end = ies + len;
 	int ie_oui;
@@ -387,6 +402,7 @@ EXPORT_SYMBOL(cfg80211_find_vendor_ie);
 static bool is_bss(struct cfg80211_bss *a, const u8 *bssid,
 		   const u8 *ssid, size_t ssid_len)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	const struct cfg80211_bss_ies *ies;
 	const u8 *ssidie;
 
@@ -423,6 +439,7 @@ static int cmp_bss(struct cfg80211_bss *a,
 		   struct cfg80211_bss *b,
 		   enum bss_compare_mode mode)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	const struct cfg80211_bss_ies *a_ies, *b_ies;
 	const u8 *ie1 = NULL;
 	const u8 *ie2 = NULL;
@@ -530,6 +547,7 @@ struct cfg80211_bss *cfg80211_get_bss(struct wiphy *wiphy,
 				      const u8 *ssid, size_t ssid_len,
 				      u16 capa_mask, u16 capa_val)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_registered_device *dev = wiphy_to_dev(wiphy);
 	struct cfg80211_internal_bss *bss, *res = NULL;
 	unsigned long now = jiffies;
@@ -566,6 +584,7 @@ EXPORT_SYMBOL(cfg80211_get_bss);
 static void rb_insert_bss(struct cfg80211_registered_device *dev,
 			  struct cfg80211_internal_bss *bss)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct rb_node **p = &dev->bss_tree.rb_node;
 	struct rb_node *parent = NULL;
 	struct cfg80211_internal_bss *tbss;
@@ -597,6 +616,7 @@ rb_find_bss(struct cfg80211_registered_device *dev,
 	    struct cfg80211_internal_bss *res,
 	    enum bss_compare_mode mode)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct rb_node *n = dev->bss_tree.rb_node;
 	struct cfg80211_internal_bss *bss;
 	int r;
@@ -619,6 +639,7 @@ rb_find_bss(struct cfg80211_registered_device *dev,
 static bool cfg80211_combine_bsses(struct cfg80211_registered_device *dev,
 				   struct cfg80211_internal_bss *new)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	const struct cfg80211_bss_ies *ies;
 	struct cfg80211_internal_bss *bss;
 	const u8 *ie;
@@ -684,6 +705,7 @@ static struct cfg80211_internal_bss *
 cfg80211_bss_update(struct cfg80211_registered_device *dev,
 		    struct cfg80211_internal_bss *tmp)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_internal_bss *found = NULL;
 
 	if (WARN_ON(!tmp->pub.channel))
@@ -840,6 +862,7 @@ static struct ieee80211_channel *
 cfg80211_get_bss_channel(struct wiphy *wiphy, const u8 *ie, size_t ielen,
 			 struct ieee80211_channel *channel)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	const u8 *tmp;
 	u32 freq;
 	int channel_number = -1;
@@ -876,6 +899,7 @@ cfg80211_inform_bss(struct wiphy *wiphy,
 		    u16 beacon_interval, const u8 *ie, size_t ielen,
 		    s32 signal, gfp_t gfp)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_bss_ies *ies;
 	struct cfg80211_internal_bss tmp = {}, *res;
 
@@ -933,6 +957,7 @@ cfg80211_inform_bss_frame(struct wiphy *wiphy,
 			  struct ieee80211_mgmt *mgmt, size_t len,
 			  s32 signal, gfp_t gfp)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_internal_bss tmp = {}, *res;
 	struct cfg80211_bss_ies *ies;
 	size_t ielen = len - offsetof(struct ieee80211_mgmt,
@@ -995,6 +1020,7 @@ EXPORT_SYMBOL(cfg80211_inform_bss_frame);
 
 void cfg80211_ref_bss(struct wiphy *wiphy, struct cfg80211_bss *pub)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_registered_device *dev = wiphy_to_dev(wiphy);
 	struct cfg80211_internal_bss *bss;
 
@@ -1011,6 +1037,7 @@ EXPORT_SYMBOL(cfg80211_ref_bss);
 
 void cfg80211_put_bss(struct wiphy *wiphy, struct cfg80211_bss *pub)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_registered_device *dev = wiphy_to_dev(wiphy);
 	struct cfg80211_internal_bss *bss;
 
@@ -1027,6 +1054,7 @@ EXPORT_SYMBOL(cfg80211_put_bss);
 
 void cfg80211_unlink_bss(struct wiphy *wiphy, struct cfg80211_bss *pub)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_registered_device *dev = wiphy_to_dev(wiphy);
 	struct cfg80211_internal_bss *bss;
 
@@ -1048,6 +1076,7 @@ EXPORT_SYMBOL(cfg80211_unlink_bss);
 static struct cfg80211_registered_device *
 cfg80211_get_dev_from_ifindex(struct net *net, int ifindex)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_registered_device *rdev;
 	struct net_device *dev;
 
@@ -1068,6 +1097,7 @@ int cfg80211_wext_siwscan(struct net_device *dev,
 			  struct iw_request_info *info,
 			  union iwreq_data *wrqu, char *extra)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_registered_device *rdev;
 	struct wiphy *wiphy;
 	struct iw_scan_req *wreq = NULL;
@@ -1201,6 +1231,7 @@ static void ieee80211_scan_add_ies(struct iw_request_info *info,
 				   const struct cfg80211_bss_ies *ies,
 				   char **current_ev, char *end_buf)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	const u8 *pos, *end, *next;
 	struct iw_event iwe;
 
@@ -1244,6 +1275,7 @@ ieee80211_bss(struct wiphy *wiphy, struct iw_request_info *info,
 	      struct cfg80211_internal_bss *bss, char *current_ev,
 	      char *end_buf)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	const struct cfg80211_bss_ies *ies;
 	struct iw_event iwe;
 	const u8 *ie;
@@ -1456,6 +1488,7 @@ static int ieee80211_scan_results(struct cfg80211_registered_device *dev,
 				  struct iw_request_info *info,
 				  char *buf, size_t len)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	char *current_ev = buf;
 	char *end_buf = buf + len;
 	struct cfg80211_internal_bss *bss;
@@ -1480,6 +1513,7 @@ int cfg80211_wext_giwscan(struct net_device *dev,
 			  struct iw_request_info *info,
 			  struct iw_point *data, char *extra)
 {
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct cfg80211_registered_device *rdev;
 	int res;
 
