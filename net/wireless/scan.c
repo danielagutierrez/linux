@@ -55,7 +55,15 @@
  * also linked into the probe response struct.
  */
 
-#define IEEE80211_SCAN_RESULT_EXPIRE	(30 * HZ)
+////////////////
+// LAMT
+// Probe Request - Probe Response delay measurement
+
+// #define IEEE80211_SCAN_RESULT_EXPIRE	(30 * HZ)
+#define IEEE80211_SCAN_RESULT_EXPIRE	(5 * HZ)
+
+// End LAMT
+
 
 static void bss_free(struct cfg80211_internal_bss *bss)
 {

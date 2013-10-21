@@ -154,14 +154,7 @@ ieee80211_bss_info_update(struct ieee80211_local *local,
 
 void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 {
-    ////////////////
-    // LAMT
-    // Probe Request - Probe Response delay measurement
-
-    printk(KERN_DEBUG "##%s;%s;%u;%lu##\n", __FILE__, __func__, __LINE__, jiffies);
-    // End LAMT
-    
-	struct ieee80211_rx_status *rx_status = IEEE80211_SKB_RXCB(skb);
+   	struct ieee80211_rx_status *rx_status = IEEE80211_SKB_RXCB(skb);
 	struct ieee80211_sub_if_data *sdata1, *sdata2;
 	struct ieee80211_mgmt *mgmt = (void *)skb->data;
 	struct ieee80211_bss *bss;
@@ -193,6 +186,14 @@ void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 		baselen = offsetof(struct ieee80211_mgmt, u.beacon.variable);
 		elements = mgmt->u.beacon.variable;
 	}
+
+    ////////////////
+    // LAMT
+    // Probe Request - Probe Response delay measurement
+
+    printk(KERN_DEBUG "##%s;%s;%u;%lu##\n", __FILE__, __func__, __LINE__, jiffies);
+    // End LAMT
+    
 
 	if (baselen > skb->len)
 		return;
