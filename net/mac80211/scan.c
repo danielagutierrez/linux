@@ -157,7 +157,6 @@ ieee80211_bss_info_update(struct ieee80211_local *local,
 
 void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 {
-    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 	struct ieee80211_rx_status *rx_status = IEEE80211_SKB_RXCB(skb);
 	struct ieee80211_sub_if_data *sdata1, *sdata2;
 	struct ieee80211_mgmt *mgmt = (void *)skb->data;
@@ -190,6 +189,8 @@ void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 		baselen = offsetof(struct ieee80211_mgmt, u.beacon.variable);
 		elements = mgmt->u.beacon.variable;
 	}
+    
+    printk(KERN_DEBUG "%s:%s:%i:%lu\n", __FILE__, __func__, __LINE__, jiffies);
 
 	if (baselen > skb->len)
 		return;
