@@ -3206,7 +3206,7 @@ static void __ieee80211_rx_handle_packet(struct ieee80211_hw *hw,
                         false, &lamt_elems);
                         lamt_rx_status->band);
         */
-      printk(KERN_DEBUG "##presponse;%s;%s;%u;%lu;nic_freq=%u;nic_band=%u;signal=%d;mactime=%llu;frame_control=%x;addr1=%pM;addr2=%pM;addr3=%pM;addr4=%pM;duration_id=%u;seq_ctrl=%u;retry=%u;timestamp=%llu;beacon_interval=%u;capability_info=%x##\n",
+      printk(KERN_DEBUG "##presponse;%s;%s;%u;%lu;nic_freq=%u;nic_band=%u;signal=%d;mactime=%llu;frame_control=%x;addr1=%pM;addr2=%pM;addr3=%pM;addr4=%pM;duration_id=%u;seq_ctrl=%u;retry=%u;timestamp=%llu;beacon_interval=%u;capability_info=%x;hw_permaddr=%pM##\n",
               // filename, function name, line number
               __FILE__, __func__, __LINE__,
 
@@ -3251,7 +3251,6 @@ static void __ieee80211_rx_handle_packet(struct ieee80211_hw *hw,
               // Retry: 1 = yes, 0 = no
               lamt_retry,
 
-
               // timestamp in the PResp frame
               // __le64 => __u64 __bitwise __le64
               (unsigned long long)lamt_mgmt->u.probe_resp.timestamp,
@@ -3262,7 +3261,10 @@ static void __ieee80211_rx_handle_packet(struct ieee80211_hw *hw,
 
               // capability info
               // (__le16 => __u16 __bitwise __le16)
-              lamt_mgmt->u.probe_resp.capab_info
+              lamt_mgmt->u.probe_resp.capab_info,
+
+              //
+              hw->wiphy->perm_addr
 
               //lamt_elems.ssid 
             );
