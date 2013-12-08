@@ -880,6 +880,11 @@ enum {
  * @SCAN_RESUME: Resume the scan and scan the next channel
  * @SCAN_ABORT: Abort the scan and go back to operating channel
  */
+
+/*
+ * LAMT
+ * @SCAN_MAXCT: Set the value for Max Channel Time for the current channel
+ */
 enum mac80211_scan_state {
 	SCAN_DECISION,
 	SCAN_SET_CHANNEL,
@@ -887,9 +892,25 @@ enum mac80211_scan_state {
 	SCAN_SUSPEND,
 	SCAN_RESUME,
 	SCAN_ABORT,
+
+  /* 
+   * LAMT
+   */
+  SCAN_MAXCT,
+  /* END LAMT */
 };
 
 struct ieee80211_local {
+
+  /* 
+   * LAMT
+   *
+   * Used to remember if any packet was received during the scanning process and
+   * following one Probe Request
+   */
+  bool pkts_received;
+  /* END LAMT */
+
 	/* embed the driver visible part.
 	 * don't cast (use the static inlines below), but we keep
 	 * it first anyway so they become a no-op */

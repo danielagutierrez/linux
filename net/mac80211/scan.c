@@ -180,6 +180,14 @@ void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 		    (!sdata2 || !ether_addr_equal(mgmt->da, sdata2->vif.addr)))
 			return;
 
+        /* LAMT */
+        //mutex_lock(&local->mtx);
+        if (local->next_scan_state == SCAN_MAXCT) {
+            local->pkts_received = 1;
+        }
+        //mutex_unlock(&local->mtx);
+        /* END LAMT */
+
 		elements = mgmt->u.probe_resp.variable;
 		baselen = offsetof(struct ieee80211_mgmt, u.probe_resp.variable);
 	} else {
@@ -402,6 +410,11 @@ static void ieee80211_scan_state_send_probe(struct ieee80211_local *local,
 	sdata = rcu_dereference_protected(local->scan_sdata,
 					  lockdep_is_held(&local->mtx));
 
+    /* LAMT
+     */
+    local->pkts_received = 0;
+    /* END LAMT */
+
 	for (i = 0; i < local->scan_req->n_ssids; i++)
 		ieee80211_send_probe_req(
 			sdata, NULL,
@@ -416,7 +429,12 @@ static void ieee80211_scan_state_send_probe(struct ieee80211_local *local,
 	 * on the channel.
 	 */
 	*next_delay = IEEE80211_CHANNEL_TIME;
-	local->next_scan_state = SCAN_DECISION;
+
+    /* LAMT
+     */
+	local->next_scan_state = SCAN_MAXCT;
+    /* END LAMT */
+
 }
 
 static int __ieee80211_start_scan(struct ieee80211_sub_if_data *sdata,
@@ -688,6 +706,50 @@ static void ieee80211_scan_state_resume(struct ieee80211_local *local,
 	local->next_scan_state = SCAN_SET_CHANNEL;
 }
 
+/* LAMT:
+ *
+ * Determine weather to wait Max Channel Time or not during the scanning
+ */
+static void ieee80211_scan_state_maxct(struct ieee80211_local *local,
+					    unsigned long *next_delay)
+{
+	struct ieee80211_channel *chan;
+
+    /* The current channel. scan_channel_idx is incremented when sending the
+     * Probe Request */
+	chan = local->scan_req->channels[local->scan_channel_idx - 1];
+
+    /* Min/Max Channel Time does not make sense during passive scan */
+    if (chan->flags & IEEE80211_CHAN_PASSIVE_SCAN) {
+		return;
+	}
+
+    /* If any packet was received after sending the Probe Request, wait until
+     * Max Channel Time, else change to the next channel */
+    if (local->pkts_received == 1) {
+
+    /* TODO
+     * To be updated with a function that selects the value for Max Channel
+     * Time according to the actual channel and the policy
+     */
+        *next_delay = IEEE80211_PROBE_DELAY;
+    }
+    else {
+        *next_delay = 0;
+    }
+	
+    local->next_scan_state = SCAN_DECISION;
+}
+/* END LAMT */
+
+/* LAMT:
+ *
+ */
+//u16 ieee80211_scan_channel_time(bool minct)
+/* END LAMT */
+
+
+
 void ieee80211_scan_work(struct work_struct *work)
 {
 	struct ieee80211_local *local =
@@ -752,6 +814,9 @@ void ieee80211_scan_work(struct work_struct *work)
 
 		switch (local->next_scan_state) {
 		case SCAN_DECISION:
+
+            /* LAMT */
+            printk(KERN_DEBUG "##scan_decision;%s;%s;%u;%d;%lu##\n", __FILE__, __func__, __LINE__, local->scan_channel_idx, jiffies);
 			/* if no more bands/channels left, complete scan */
 			if (local->scan_channel_idx >= local->scan_req->n_channels) {
 				aborted = false;
@@ -760,18 +825,46 @@ void ieee80211_scan_work(struct work_struct *work)
 			ieee80211_scan_state_decision(local, &next_delay);
 			break;
 		case SCAN_SET_CHANNEL:
+
+            /* LAMT */
+            printk(KERN_DEBUG "##scan_set_channel;%s;%s;%u;%d;%lu##\n", __FILE__, __func__, __LINE__, local->scan_channel_idx, jiffies);
 			ieee80211_scan_state_set_channel(local, &next_delay);
 			break;
 		case SCAN_SEND_PROBE:
+
+            /* LAMT */
+            printk(KERN_DEBUG "##scan_send_probe;%s;%s;%u;%d;%lu##\n", __FILE__, __func__, __LINE__, local->scan_channel_idx, jiffies);
 			ieee80211_scan_state_send_probe(local, &next_delay);
 			break;
+
+            /* LAMT
+             * This new state will be trigered by ieee80211_scan_rx to wait
+             * for Max Channel Time, this is done only if next_scan_state
+             * is SCAN_DECISION.
+             */
+		case SCAN_MAXCT:
+    
+            printk(KERN_DEBUG "##scan_maxct;%s;%s;%u;%d;%lu##\n", __FILE__, __func__, __LINE__, local->scan_channel_idx, jiffies);
+			ieee80211_scan_state_maxct(local, &next_delay);
+			break;
+            /* END LAMT */
+
 		case SCAN_SUSPEND:
+
+            /* LAMT */
+            printk(KERN_DEBUG "##scan_suspend;%s;%s;%u;%d;%lu##\n", __FILE__, __func__, __LINE__, local->scan_channel_idx, jiffies);
 			ieee80211_scan_state_suspend(local, &next_delay);
 			break;
 		case SCAN_RESUME:
+
+            /* LAMT */
+            printk(KERN_DEBUG "##scan_resume;%s;%s;%u;%d;%lu##\n", __FILE__, __func__, __LINE__, local->scan_channel_idx, jiffies);
 			ieee80211_scan_state_resume(local, &next_delay);
 			break;
 		case SCAN_ABORT:
+
+            /* LAMT */
+            printk(KERN_DEBUG "##scan_abort;%s;%s;%u;%d;%lu##\n", __FILE__, __func__, __LINE__, local->scan_channel_idx, jiffies);
 			aborted = true;
 			goto out_complete;
 		}
