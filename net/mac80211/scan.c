@@ -424,7 +424,7 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
     switch (chan) {
         // 1
     case 2412:
-        minct = 15;
+        minct = 7;
         break;
         // 2
     case 2417:
@@ -499,7 +499,7 @@ static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
     switch (chan) {
         // 1
     case 2412:
-        maxct = 11;
+        maxct = 3;
         break;
         // 2
     case 2417:
@@ -519,7 +519,7 @@ static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
         break;
         // 6
     case 2437:
-        maxct = 13;
+        maxct = 5;
         break;
         // 7
     case 2442:
