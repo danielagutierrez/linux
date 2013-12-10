@@ -1335,10 +1335,42 @@ void ieee80211_send_probe_req(struct ieee80211_sub_if_data *sdata, u8 *dst,
 {
 	struct sk_buff *skb;
 
+    ////////////////
+    // LAMT
+    // Probe Request - Probe Response delay measurement
+    
+    struct ieee80211_hdr *lamt_hdr;
+
+    // Take into account the time to build the PRequest, so save the jiffies
+    // just before start to build it
+    u64 lamt_now = jiffies;
+
+    // End LAMT
+
+
 	skb = ieee80211_build_probe_req(sdata, dst, ratemask, channel,
 					ssid, ssid_len,
 					ie, ie_len, directed);
-	if (skb) {
+
+
+    ////////////////
+    // LAMT
+    // Probe Request - Probe Response delay measurement
+    lamt_hdr = (struct ieee80211_hdr *)skb->data;
+    printk(KERN_DEBUG "##%s;%s;%u;%llu;prequest;center_freq=%u;band=%u;addr1=%pM;addr2=%pM;addr3=%pM;addr4=%pM##\n",
+            __FILE__, __func__, __LINE__,
+            lamt_now,
+            channel->center_freq,
+            channel->band,
+            lamt_hdr->addr1,
+            lamt_hdr->addr2,
+            lamt_hdr->addr3,
+            lamt_hdr->addr4
+          );
+    // End LAMT
+
+
+    if (skb) {
 		IEEE80211_SKB_CB(skb)->flags |= tx_flags;
 		if (scan)
 			ieee80211_tx_skb_tid_band(sdata, skb, 7, channel->band);

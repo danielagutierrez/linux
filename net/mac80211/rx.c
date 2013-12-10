@@ -3171,6 +3171,108 @@ static void __ieee80211_rx_handle_packet(struct ieee80211_hw *hw,
 	ieee80211_parse_qos(&rx);
 	ieee80211_verify_alignment(&rx);
 
+
+    ////////////////
+    // LAMT
+    // Probe Request - Probe Response delay measurement
+    
+    // From linux doc
+    // mactime: value in microseconds of the 64-bit Time Synchronization
+    // Function (TSF) timer when the first data symbol (MPDU) arrived at
+    // the hardware
+
+    if(ieee80211_is_probe_resp(fc)) {
+        // To access timestamp, beacon_interval
+        struct ieee80211_mgmt *lamt_mgmt = (void *)skb->data;
+ 
+        // To access the NIC information during the rx
+        struct ieee80211_rx_status *lamt_rx_status = IEEE80211_SKB_RXCB(skb);
+
+        u8 lamt_retry = 0;
+        if (ieee80211_has_retry(fc)) {
+            lamt_retry = 1;
+        }
+        
+        // Not sure if necessary       
+        /*
+        u8 *lamt_elements;
+        size_t lamt_baselen;
+        struct ieee802_11_elems lamt_elems;
+
+        lamt_elements = lamt_mgmt->u.probe_resp.variable;
+        lamt_baselen = offsetof(struct ieee80211_mgmt,
+                        u.probe_resp.variable);
+        ieee802_11_parse_elems(lamt_elements, skb->len - lamt_baselen,
+                        false, &lamt_elems);
+                        lamt_rx_status->band);
+        */
+      printk(KERN_DEBUG "##presponse;%s;%s;%u;%lu;nic_freq=%u;nic_band=%u;signal=%d;mactime=%llu;frame_control=%x;addr1=%pM;addr2=%pM;addr3=%pM;addr4=%pM;duration_id=%u;seq_ctrl=%u;retry=%u;timestamp=%llu;beacon_interval=%u;capability_info=%x;hw_permaddr=%pM##\n",
+              // filename, function name, line number
+              __FILE__, __func__, __LINE__,
+
+              // MS actual time in jiffies
+              jiffies,
+
+              // MS scanning freq 
+              lamt_rx_status->freq,
+
+              // MS scanning band. What does this mean??
+              lamt_rx_status->band,
+
+              // Signala strength when receiving this frame
+              lamt_rx_status->signal,
+
+              // Value in microseconds of the 64-bit Time Synchronization
+              // Function (TSF) timer when the first data symbol (MPDU)
+              // arrived at the hardware
+              (unsigned long long)lamt_rx_status->mactime,
+
+              // Frame control
+              // (__le16 => __u16 __bitwise __le16)
+              hdr->frame_control,
+
+              // addr1, in a Probe Response should be de destination address
+              hdr->addr1,
+
+              // addr2, in a Probe Response should be de source address
+              hdr->addr2,
+
+              hdr->addr3,
+              hdr->addr4,
+
+              // duration/id. See Standard, section 7.2.3hl
+              // (__le16 => __u16 __bitwise __le16)
+              hdr->duration_id,
+              
+              // Sequence control
+              // (__le16 => __u16 __bitwise __le16)
+              hdr->seq_ctrl,
+
+              // Retry: 1 = yes, 0 = no
+              lamt_retry,
+
+              // timestamp in the PResp frame
+              // __le64 => __u64 __bitwise __le64
+              (unsigned long long)lamt_mgmt->u.probe_resp.timestamp,
+
+              // beacon_interval
+              // (__le16 => __u16 __bitwise __le16)
+              lamt_mgmt->u.probe_resp.beacon_int,
+
+              // capability info
+              // (__le16 => __u16 __bitwise __le16)
+              lamt_mgmt->u.probe_resp.capab_info,
+
+              //
+              hw->wiphy->perm_addr
+
+              //lamt_elems.ssid 
+            );
+    }
+    // End LAMT
+	
+
+
 	if (unlikely(ieee80211_is_probe_resp(hdr->frame_control) ||
 		     ieee80211_is_beacon(hdr->frame_control)))
 		ieee80211_scan_rx(local, skb);
