@@ -432,7 +432,7 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
         break;
         // 3
     case 2422:
-        minct = 11;
+        minct = 8;
         break;
         // 4
     case 2427:
@@ -448,19 +448,19 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
         break;
         // 7
     case 2442:
-        minct = 7;
+        minct = 4;
         break;
         // 8
     case 2447:
-        minct = 7;
+        minct = 12;
         break;
         // 9
     case 2452:
-        minct = 15;
+        minct = 12;
         break;
         // 10
     case 2457:
-        minct = 15;
+        minct = 4;
         break;
         // 11
     case 2462:
@@ -507,7 +507,7 @@ static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
         break;
         // 3
     case 2422:
-        maxct = 11;
+        maxct = 8;
         break;
         // 4
     case 2427:
@@ -523,23 +523,23 @@ static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
         break;
         // 7
     case 2442:
-        maxct = 7;
+        maxct = 4;
         break;
         // 8
     case 2447:
-        maxct = 3;
+        maxct = 8;
         break;
         // 9
     case 2452:
-        maxct = 15;
+        maxct = 12;
         break;
         // 10
     case 2457:
-        maxct = 10;
+        maxct = 4;
         break;
         // 11
     case 2462:
-        maxct = 15;
+        maxct = 13;
         break;
         // 12
     case 2467:
