@@ -1295,6 +1295,10 @@ struct cfg80211_ssid {
  * @aborted: (internal) scan request was notified as aborted
  * @notified: (internal) scan request was notified as done or aborted
  * @no_cck: used to send probe requests at non CCK rate in 2GHz band
+ *
+ * LAMT
+ * @maxtime: used to specify the maximum duration for the active scanning
+ * END LAMT
  */
 struct cfg80211_scan_request {
 	struct cfg80211_ssid *ssids;
@@ -1303,6 +1307,10 @@ struct cfg80211_scan_request {
 	const u8 *ie;
 	size_t ie_len;
 	u32 flags;
+
+  /* LAMT */
+  u32 maxtime;
+  /* END LAMT */
 
 	u32 rates[IEEE80211_NUM_BANDS];
 
@@ -1347,12 +1355,20 @@ struct cfg80211_match_set {
  * @scan_start: start time of the scheduled scan
  * @channels: channels to scan
  * @rssi_thold: don't report scan results below this threshold (in s32 dBm)
+ *
+ * LAMT
+ * @maxtime: used to specify the maximum duration for the active scanning
+ * END LAMT
  */
 struct cfg80211_sched_scan_request {
 	struct cfg80211_ssid *ssids;
 	int n_ssids;
 	u32 n_channels;
 	u32 interval;
+  /* LAMT */
+  u32 maxtime;
+  /* END LAMT */
+
 	const u8 *ie;
 	size_t ie_len;
 	u32 flags;

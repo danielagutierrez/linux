@@ -416,17 +416,12 @@ void ieee80211_run_deferred_scan(struct ieee80211_local *local)
  */
 static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
 {
-    int current_channel_idx;
-	struct ieee80211_channel *chan;
     int minct;
     int minct_jiffies;
+	int chan;
 
-    /* The current channel. scan_channel_idx is incremented when sending the
-     * Probe Request, so current channel index should be the previous one */
-    current_channel_idx = local->scan_channel_idx - 1;
-	chan = local->scan_req->channels[current_channel_idx];
-
-    switch (chan->center_freq) {
+    chan = local->hw.conf.chandef.chan->center_freq;
+    switch (chan) {
         // 1
     case 2412:
         minct = 15;
@@ -484,7 +479,7 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
         break;
     }
     minct_jiffies = msecs_to_jiffies(minct);
-    printk(KERN_DEBUG "##minct;%s;%s;%u;%lu;%d;%d;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan->center_freq, minct, minct_jiffies);
+    printk(KERN_DEBUG "##minct;%s;%s;%u;%lu;%d;%d;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan, minct, minct_jiffies);
 
     return minct_jiffies;
 }
@@ -496,20 +491,12 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
  */
 static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
 {
-    int current_channel_idx;
-	struct ieee80211_channel *chan;
     int maxct;
     int maxct_jiffies;
+	int chan;
 
-    /* The current channel. scan_channel_idx is incremented when sending the
-     * Probe Request, so current channel index should be the previous one
-     * TODO:
-     * it may be better to check the current channel with the hardware
-     */
-    current_channel_idx = local->scan_channel_idx - 1;
-	chan = local->scan_req->channels[current_channel_idx];
-
-    switch (chan->center_freq) {
+    chan = local->hw.conf.chandef.chan->center_freq;
+    switch (chan) {
         // 1
     case 2412:
         maxct = 13;
@@ -567,7 +554,7 @@ static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
         break;
     }
     maxct_jiffies = msecs_to_jiffies(maxct);
-    printk(KERN_DEBUG "##maxct;%s;%s;%u;%lu;%d;%d;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan->center_freq, maxct, maxct_jiffies);
+    printk(KERN_DEBUG "##maxct;%s;%s;%u;%lu;%d;%d;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan, maxct, maxct_jiffies);
 
     return maxct_jiffies;
 }
@@ -625,6 +612,10 @@ static int __ieee80211_start_scan(struct ieee80211_sub_if_data *sdata,
 
 	lockdep_assert_held(&local->mtx);
 
+    /* LAMT */
+    printk(KERN_DEBUG "##scan_maxtime;%s;%s;%u;%lu;%d##\n", __FILE__, __func__, __LINE__, jiffies, req->maxtime);
+    /* ENDL LAMT */
+
 	if (local->scan_req)
 		return -EBUSY;
 
@@ -663,7 +654,7 @@ static int __ieee80211_start_scan(struct ieee80211_sub_if_data *sdata,
 
 		local->hw_scan_band = 0;
 
-		/*
+		/ *
 		 * After allocating local->hw_scan_req, we must
 		 * go through until ieee80211_prep_hw_scan(), so
 		 * anything that might be changed here and leave
@@ -683,7 +674,7 @@ static int __ieee80211_start_scan(struct ieee80211_sub_if_data *sdata,
 		__set_bit(SCAN_HW_SCANNING, &local->scanning);
 	} else if ((req->n_channels == 1) &&
 		   (req->channels[0] == local->_oper_chandef.chan)) {
-		/*
+		/ *
 		 * If we are scanning only on the operating channel
 		 * then we do not need to stop normal activities
 		 * /
@@ -693,13 +684,13 @@ static int __ieee80211_start_scan(struct ieee80211_sub_if_data *sdata,
 
 		ieee80211_recalc_idle(local);
 
-		/* Notify driver scan is starting, keep order of operations
+		/ * Notify driver scan is starting, keep order of operations
 		 * same as normal software scan, in case that matters. * /
 		drv_sw_scan_start(local);
 
-		ieee80211_configure_filter(local); /* accept probe-responses * /
+		ieee80211_configure_filter(local); / * accept probe-responses * /
 
-		/* We need to ensure power level is at max for scanning. * /
+		/ * We need to ensure power level is at max for scanning. * /
 		ieee80211_hw_config(local, 0);
 
 		if ((req->channels[0]->flags &
@@ -711,12 +702,12 @@ static int __ieee80211_start_scan(struct ieee80211_sub_if_data *sdata,
 			next_delay = IEEE80211_CHANNEL_TIME;
 		}
 
-		/* Now, just wait a bit and we are all done! * /
+		/ * Now, just wait a bit and we are all done! * /
 		ieee80211_queue_delayed_work(&local->hw, &local->scan_work,
 					     next_delay);
 		return 0;
 	} else {
-		/* Do normal software scan * /
+		/ * Do normal software scan * /
 		__set_bit(SCAN_SW_SCANNING, &local->scanning);
 	}
 
@@ -763,10 +754,10 @@ ieee80211_scan_get_channel_time(struct ieee80211_channel *chan)
 static void ieee80211_scan_state_decision(struct ieee80211_local *local,
 					  unsigned long *next_delay)
 {
-	bool associated = false;
-	bool tx_empty = true;
-	bool bad_latency;
-	struct ieee80211_sub_if_data *sdata;
+	// LAMT bool associated = false;
+	// LAMT bool tx_empty = true;
+	// LAMT bool bad_latency;
+	// LAMT struct ieee80211_sub_if_data *sdata;
 	struct ieee80211_channel *next_chan;
 	enum mac80211_scan_state next_scan_state;
 
@@ -871,6 +862,7 @@ static void ieee80211_scan_state_set_channel(struct ieee80211_local *local,
 	 *
 	 * In any case, it is not necessary for a passive scan.
 	 */
+
 	if (chan->flags & IEEE80211_CHAN_PASSIVE_SCAN ||
 	    !local->scan_req->n_ssids) {
 		*next_delay = IEEE80211_PASSIVE_CHANNEL_TIME;

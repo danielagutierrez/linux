@@ -349,6 +349,9 @@ static const struct nla_policy nl80211_policy[NL80211_ATTR_MAX+1] = {
 	[NL80211_ATTR_IE_RIC] = { .type = NLA_BINARY,
 				  .len = IEEE80211_MAX_DATA_LEN },
 	[NL80211_ATTR_PEER_AID] = { .type = NLA_U16 },
+    /* LAMT */
+	[NL80211_ATTR_SCAN_MAXTIME] = { .type = NLA_U32 },
+    /* ENDL LAMT */
 };
 
 /* policy for the key attributes */
@@ -5119,7 +5122,7 @@ static int nl80211_trigger_scan(struct sk_buff *skb, struct genl_info *info)
 				n_channels += wiphy->bands[band]->n_channels;
 	}
 
-	if (info->attrs[NL80211_ATTR_SCAN_SSIDS])
+    if (info->attrs[NL80211_ATTR_SCAN_SSIDS])
 		nla_for_each_nested(attr, info->attrs[NL80211_ATTR_SCAN_SSIDS], tmp)
 			n_ssids++;
 
@@ -5225,6 +5228,12 @@ static int nl80211_trigger_scan(struct sk_buff *skb, struct genl_info *info)
 		       nla_data(info->attrs[NL80211_ATTR_IE]),
 		       request->ie_len);
 	}
+
+    /* LAMT */
+	if (info->attrs[NL80211_ATTR_SCAN_MAXTIME])
+        request->maxtime = nla_get_u32(
+                info->attrs[NL80211_ATTR_SCAN_MAXTIME]);
+    /* END LAMT */
 
 	for (i = 0; i < IEEE80211_NUM_BANDS; i++)
 		if (wiphy->bands[i])
@@ -5504,6 +5513,12 @@ static int nl80211_start_sched_scan(struct sk_buff *skb,
 			goto out_free;
 		}
 	}
+
+    /* LAMT */
+	if (info->attrs[NL80211_ATTR_SCAN_MAXTIME])
+        request->maxtime = nla_get_u32(
+                info->attrs[NL80211_ATTR_SCAN_MAXTIME]);
+    /* END LAMT */
 
 	request->dev = dev;
 	request->wiphy = &rdev->wiphy;
@@ -9115,6 +9130,11 @@ static int nl80211_add_scan_req(struct sk_buff *msg,
 
 	if (req->flags)
 		nla_put_u32(msg, NL80211_ATTR_SCAN_FLAGS, req->flags);
+
+    /* LAMT */
+	if (req->maxtime)
+		nla_put_u32(msg, NL80211_ATTR_SCAN_MAXTIME, req->maxtime);
+    /* END LAMT */
 
 	return 0;
  nla_put_failure:

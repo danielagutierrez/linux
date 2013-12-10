@@ -1736,7 +1736,12 @@ enum nl80211_attrs {
 
 	NL80211_ATTR_PEER_AID,
 
+
 	/* add attributes here, update the policy in nl80211.c */
+
+  /* LAMT */
+	NL80211_ATTR_SCAN_MAXTIME,
+  /* END LAMT */
 
 	__NL80211_ATTR_AFTER_LAST,
 	NL80211_ATTR_MAX = __NL80211_ATTR_AFTER_LAST - 1
