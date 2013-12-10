@@ -25,8 +25,8 @@
 #include "driver-ops.h"
 #include "mesh.h"
 
-#define IEEE80211_PROBE_DELAY (HZ / HZ)
-#define IEEE80211_CHANNEL_TIME (HZ / 33)
+#define IEEE80211_PROBE_DELAY (HZ / 1000)
+#define IEEE80211_CHANNEL_TIME (HZ / 4)
 #define IEEE80211_PASSIVE_CHANNEL_TIME (HZ / 9)
 
 void ieee80211_rx_bss_put(struct ieee80211_local *local,
@@ -154,7 +154,7 @@ ieee80211_bss_info_update(struct ieee80211_local *local,
 
 void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 {
-	struct ieee80211_rx_status *rx_status = IEEE80211_SKB_RXCB(skb);
+   	struct ieee80211_rx_status *rx_status = IEEE80211_SKB_RXCB(skb);
 	struct ieee80211_sub_if_data *sdata1, *sdata2;
 	struct ieee80211_mgmt *mgmt = (void *)skb->data;
 	struct ieee80211_bss *bss;
@@ -163,20 +163,10 @@ void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 	size_t baselen;
 	struct ieee802_11_elems elems;
 
-    /* LAMT
-     * Discover networks by only using Probe Response
-     *
-     * TODO
-     * This probably breakes the Passive Scan!!!!!! */
-    /*
 	if (skb->len < 24 ||
 	    (!ieee80211_is_probe_resp(mgmt->frame_control) &&
 	     !ieee80211_is_beacon(mgmt->frame_control)))
 		return;
-    */
-	if (skb->len < 24 || !ieee80211_is_probe_resp(mgmt->frame_control))
-		return;
-    /* END LAMT */
 
 	sdata1 = rcu_dereference(local->scan_sdata);
 	sdata2 = rcu_dereference(local->sched_scan_sdata);
@@ -190,22 +180,20 @@ void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 		    (!sdata2 || !ether_addr_equal(mgmt->da, sdata2->vif.addr)))
 			return;
 
-        /* LAMT
-         * TODO: Is it necessary to use mutex or something similar to assure
-         * the correct access to the local variables? */
-        //mutex_lock(&local->mtx);
-        if (local->next_scan_state == SCAN_MAXCT) {
-            local->pkts_received = 1;
-        }
-        //mutex_unlock(&local->mtx);
-        /* END LAMT */
-
 		elements = mgmt->u.probe_resp.variable;
 		baselen = offsetof(struct ieee80211_mgmt, u.probe_resp.variable);
 	} else {
 		baselen = offsetof(struct ieee80211_mgmt, u.beacon.variable);
 		elements = mgmt->u.beacon.variable;
 	}
+
+    ////////////////
+    // LAMT
+    // Probe Request - Probe Response delay measurement
+
+    printk(KERN_DEBUG "##%s;%s;%u;%lu##\n", __FILE__, __func__, __LINE__, jiffies);
+    // End LAMT
+    
 
 	if (baselen > skb->len)
 		return;
@@ -323,8 +311,6 @@ void ieee80211_scan_completed(struct ieee80211_hw *hw, bool aborted)
 {
 	struct ieee80211_local *local = hw_to_local(hw);
 
-    printk(KERN_DEBUG "##scan_completed;%s;%s;%u;%lu;%lu;%lu##\n", __FILE__, __func__, __LINE__, jiffies, local->leave_oper_channel_time, local->leave_oper_channel_time - jiffies);
-
 	trace_api_scan_completed(local, aborted);
 
 	set_bit(SCAN_COMPLETED, &local->scanning);
@@ -409,158 +395,6 @@ void ieee80211_run_deferred_scan(struct ieee80211_local *local)
 				     round_jiffies_relative(0));
 }
 
-/* LAMT:
- *
- * Determine the value for Min Channel Time acording to the current channel
- * and policy
- */
-static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
-{
-    int minct;
-    int minct_jiffies;
-	int chan;
-
-    chan = local->hw.conf.chandef.chan->center_freq;
-    switch (chan) {
-        // 1
-    case 2412:
-        minct = 8;
-        break;
-        // 2
-    case 2417:
-        minct = 3;
-        break;
-        // 3
-    case 2422:
-        minct = 8;
-        break;
-        // 4
-    case 2427:
-        minct = 6;
-        break;
-        // 5
-    case 2432:
-        minct = 6;
-        break;
-        // 6
-    case 2437:
-        minct = 5;
-        break;
-        // 7
-    case 2442:
-        minct = 4;
-        break;
-        // 8
-    case 2447:
-        minct = 12;
-        break;
-        // 9
-    case 2452:
-        minct = 8;
-        break;
-        // 10
-    case 2457:
-        minct = 4;
-        break;
-        // 11
-    case 2462:
-        minct = 7;
-        break;
-        // 12
-    case 2467:
-        minct = 3;
-        break;
-        // 13
-    case 2472:
-        minct = 3;
-        break;
-    default:
-        minct = 3;
-        break;
-    }
-    minct_jiffies = msecs_to_jiffies(minct);
-    printk(KERN_DEBUG "##minct;%s;%s;%u;%lu;%d;%d;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan, minct, minct_jiffies);
-
-    return minct_jiffies;
-}
-/* END LAMT */
-
-/* LAMT:
- *
- * Determine Max Channel Time according to the current channel and policy
- */
-static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
-{
-    int maxct;
-    int maxct_jiffies;
-	int chan;
-
-    chan = local->hw.conf.chandef.chan->center_freq;
-    switch (chan) {
-        // 1
-    case 2412:
-        maxct = 2;
-        break;
-        // 2
-    case 2417:
-        maxct = 3;
-        break;
-        // 3
-    case 2422:
-        maxct = 8;
-        break;
-        // 4
-    case 2427:
-        maxct = 3;
-        break;
-        // 5
-    case 2432:
-        maxct = 4;
-        break;
-        // 6
-    case 2437:
-        maxct = 3;
-        break;
-        // 7
-    case 2442:
-        maxct = 4;
-        break;
-        // 8
-    case 2447:
-        maxct = 8;
-        break;
-        // 9
-    case 2452:
-        maxct = 8;
-        break;
-        // 10
-    case 2457:
-        maxct = 4;
-        break;
-        // 11
-    case 2462:
-        maxct = 7;
-        break;
-        // 12
-    case 2467:
-        maxct = 3;
-        break;
-        // 13
-    case 2472:
-        maxct = 3;
-        break;
-    default:
-        maxct = 3;
-        break;
-    }
-    maxct_jiffies = msecs_to_jiffies(maxct);
-    printk(KERN_DEBUG "##maxct;%s;%s;%u;%lu;%d;%d;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan, maxct, maxct_jiffies);
-
-    return maxct_jiffies;
-}
-/* END LAMT */
-
-
 static void ieee80211_scan_state_send_probe(struct ieee80211_local *local,
 					    unsigned long *next_delay)
 {
@@ -576,12 +410,7 @@ static void ieee80211_scan_state_send_probe(struct ieee80211_local *local,
 	sdata = rcu_dereference_protected(local->scan_sdata,
 					  lockdep_is_held(&local->mtx));
 
-    /* LAMT
-     */
-    local->pkts_received = 0;
-    /* END LAMT */
-
-	for (i = 0; i < local->scan_req->n_ssids; i++)
+	for (i = 0; i < local->scan_req->n_ssids; i++) {
 		ieee80211_send_probe_req(
 			sdata, NULL,
 			local->scan_req->ssids[i].ssid,
@@ -590,18 +419,20 @@ static void ieee80211_scan_state_send_probe(struct ieee80211_local *local,
 			local->scan_req->rates[band], false,
 			tx_flags, local->hw.conf.chandef.chan, true);
 
+        ////////////////
+        // LAMT
+        // Probe Request - Probe Response delay measurement
+
+        printk(KERN_DEBUG "##%s;%s;%u;%lu##\n", __FILE__, __func__, __LINE__, jiffies);
+        // End LAMT
+    }
+
 	/*
 	 * After sending probe requests, wait for probe responses
 	 * on the channel.
 	 */
-
-    /* LAMT
-     */
-	*next_delay = ieee80211_scan_calculate_minct(local);
-
-	local->next_scan_state = SCAN_MAXCT;
-    /* END LAMT */
-
+	*next_delay = IEEE80211_CHANNEL_TIME;
+	local->next_scan_state = SCAN_DECISION;
 }
 
 static int __ieee80211_start_scan(struct ieee80211_sub_if_data *sdata,
@@ -611,10 +442,6 @@ static int __ieee80211_start_scan(struct ieee80211_sub_if_data *sdata,
 	int rc;
 
 	lockdep_assert_held(&local->mtx);
-
-    /* LAMT */
-    printk(KERN_DEBUG "##scan_maxtime;%s;%s;%u;%lu;%d##\n", __FILE__, __func__, __LINE__, jiffies, req->maxtime);
-    /* ENDL LAMT */
 
 	if (local->scan_req)
 		return -EBUSY;
@@ -626,11 +453,6 @@ static int __ieee80211_start_scan(struct ieee80211_sub_if_data *sdata,
 		return 0;
 	}
 
-    /* LAMT
-     * During tests use only software scan.
-     * Comenting the hardware scan related code */
-
-    /*
 	if (local->ops->hw_scan) {
 		u8 *ies;
 
@@ -654,43 +476,39 @@ static int __ieee80211_start_scan(struct ieee80211_sub_if_data *sdata,
 
 		local->hw_scan_band = 0;
 
-		/ *
+		/*
 		 * After allocating local->hw_scan_req, we must
 		 * go through until ieee80211_prep_hw_scan(), so
 		 * anything that might be changed here and leave
 		 * this function early must not go after this
 		 * allocation.
-		 * /
+		 */
 	}
-    */
-    /* END LAMT */
 
 	local->scan_req = req;
 	rcu_assign_pointer(local->scan_sdata, sdata);
 
-    /* LAMT
-     * Use always software scan and keep it simple
 	if (local->ops->hw_scan) {
 		__set_bit(SCAN_HW_SCANNING, &local->scanning);
 	} else if ((req->n_channels == 1) &&
 		   (req->channels[0] == local->_oper_chandef.chan)) {
-		/ *
+		/*
 		 * If we are scanning only on the operating channel
 		 * then we do not need to stop normal activities
-		 * /
+		 */
 		unsigned long next_delay;
 
 		__set_bit(SCAN_ONCHANNEL_SCANNING, &local->scanning);
 
 		ieee80211_recalc_idle(local);
 
-		/ * Notify driver scan is starting, keep order of operations
-		 * same as normal software scan, in case that matters. * /
+		/* Notify driver scan is starting, keep order of operations
+		 * same as normal software scan, in case that matters. */
 		drv_sw_scan_start(local);
 
-		ieee80211_configure_filter(local); / * accept probe-responses * /
+		ieee80211_configure_filter(local); /* accept probe-responses */
 
-		/ * We need to ensure power level is at max for scanning. * /
+		/* We need to ensure power level is at max for scanning. */
 		ieee80211_hw_config(local, 0);
 
 		if ((req->channels[0]->flags &
@@ -702,29 +520,23 @@ static int __ieee80211_start_scan(struct ieee80211_sub_if_data *sdata,
 			next_delay = IEEE80211_CHANNEL_TIME;
 		}
 
-		/ * Now, just wait a bit and we are all done! * /
+		/* Now, just wait a bit and we are all done! */
 		ieee80211_queue_delayed_work(&local->hw, &local->scan_work,
 					     next_delay);
 		return 0;
 	} else {
-		/ * Do normal software scan * /
+		/* Do normal software scan */
 		__set_bit(SCAN_SW_SCANNING, &local->scanning);
 	}
 
-    if (local->ops->hw_scan) {
+	ieee80211_recalc_idle(local);
+
+	if (local->ops->hw_scan) {
 		WARN_ON(!ieee80211_prep_hw_scan(local));
 		rc = drv_hw_scan(local, sdata, local->hw_scan_req);
 	} else
 		rc = ieee80211_start_sw_scan(local);
 
-    */
-
-    __set_bit(SCAN_SW_SCANNING, &local->scanning);
-
-	ieee80211_recalc_idle(local);
-    rc = ieee80211_start_sw_scan(local);
-    /* END LAMT */
-	
 	if (rc) {
 		kfree(local->hw_scan_req);
 		local->hw_scan_req = NULL;
@@ -754,10 +566,10 @@ ieee80211_scan_get_channel_time(struct ieee80211_channel *chan)
 static void ieee80211_scan_state_decision(struct ieee80211_local *local,
 					  unsigned long *next_delay)
 {
-	// LAMT bool associated = false;
-	// LAMT bool tx_empty = true;
-	// LAMT bool bad_latency;
-	// LAMT struct ieee80211_sub_if_data *sdata;
+	bool associated = false;
+	bool tx_empty = true;
+	bool bad_latency;
+	struct ieee80211_sub_if_data *sdata;
 	struct ieee80211_channel *next_chan;
 	enum mac80211_scan_state next_scan_state;
 
@@ -766,12 +578,6 @@ static void ieee80211_scan_state_decision(struct ieee80211_local *local,
 	 * check if at least one STA interface has pending tx frames
 	 * and grab the lowest used beacon interval
 	 */
-
-    /* LAMT
-     * during the scanning tests, the station is never associated, so this
-     * should not be necessary. Commenting the following section
-     */
-    /*
 	mutex_lock(&local->iflist_mtx);
 	list_for_each_entry(sdata, &local->interfaces, list) {
 		if (!ieee80211_sdata_running(sdata))
@@ -789,7 +595,7 @@ static void ieee80211_scan_state_decision(struct ieee80211_local *local,
 		}
 	}
 	mutex_unlock(&local->iflist_mtx);
-    */
+
 	next_chan = local->scan_req->channels[local->scan_channel_idx];
 
 	/*
@@ -800,12 +606,6 @@ static void ieee80211_scan_state_decision(struct ieee80211_local *local,
 	 * Keep good latency, do not stay off-channel more than 125 ms.
 	 */
 
-    /* LAMT
-     * During the tests, keep the scanning as simple as possible
-     *
-     * Commenting the following section to always tigger the software scan
-     */
-    /*
 	bad_latency = time_after(jiffies +
 				 ieee80211_scan_get_channel_time(next_chan),
 				 local->leave_oper_channel_time + HZ / 8);
@@ -820,9 +620,6 @@ static void ieee80211_scan_state_decision(struct ieee80211_local *local,
 	} else {
 		next_scan_state = SCAN_SET_CHANNEL;
 	}
-    */
-    next_scan_state = SCAN_SET_CHANNEL;
-    /* END LAMT */
 
 	local->next_scan_state = next_scan_state;
 
@@ -832,6 +629,13 @@ static void ieee80211_scan_state_decision(struct ieee80211_local *local,
 static void ieee80211_scan_state_set_channel(struct ieee80211_local *local,
 					     unsigned long *next_delay)
 {
+    ////////////////
+    // LAMT
+    // Probe Request - Probe Response delay measurement
+
+    printk(KERN_DEBUG "##%s;%s;%u;%lu##\n", __FILE__, __func__, __LINE__, jiffies);
+    // End LAMT
+
 	int skip;
 	struct ieee80211_channel *chan;
 
@@ -862,7 +666,6 @@ static void ieee80211_scan_state_set_channel(struct ieee80211_local *local,
 	 *
 	 * In any case, it is not necessary for a passive scan.
 	 */
-
 	if (chan->flags & IEEE80211_CHAN_PASSIVE_SCAN ||
 	    !local->scan_req->n_ssids) {
 		*next_delay = IEEE80211_PASSIVE_CHANNEL_TIME;
@@ -908,46 +711,6 @@ static void ieee80211_scan_state_resume(struct ieee80211_local *local,
 	local->next_scan_state = SCAN_SET_CHANNEL;
 }
 
-
-/* LAMT:
- *
- * Determine weather to wait Max Channel Time or not during the scanning
- */
-static void ieee80211_scan_state_maxct(struct ieee80211_local *local,
-					    unsigned long *next_delay)
-{
-
-    int current_channel_idx;
-    struct ieee80211_channel *chan;
-
-    /* The current channel. scan_channel_idx is incremented when sending the
-     * Probe Request, so current channel index should be the previous one */
-    current_channel_idx = local->scan_channel_idx - 1;
-	chan = local->scan_req->channels[current_channel_idx];
-
-    /* Min/Max Channel Time does not make sense during passive scan */
-    if (chan->flags & IEEE80211_CHAN_PASSIVE_SCAN) {
-		return;
-	}
-
-    /* If any packet was received after sending the Probe Request, wait until
-     * Max Channel Time, else change to the next channel */
-    if (local->pkts_received == 1) {
-
-    /* TODO
-     * To be updated with a function that selects the value for Max Channel
-     * Time according to the current channel and policy
-     */
-        *next_delay = ieee80211_scan_calculate_maxct(local);
-    }
-    else {
-        *next_delay = 0;
-    }
-	
-    local->next_scan_state = SCAN_DECISION;
-}
-/* END LAMT */
-
 void ieee80211_scan_work(struct work_struct *work)
 {
 	struct ieee80211_local *local =
@@ -956,28 +719,17 @@ void ieee80211_scan_work(struct work_struct *work)
 	unsigned long next_delay = 0;
 	bool aborted, hw_scan;
 
-
-    /* LAMT */
-	int chan;
-    /* END LAMT */ 
 	mutex_lock(&local->mtx);
 
 	sdata = rcu_dereference_protected(local->scan_sdata,
 					  lockdep_is_held(&local->mtx));
 
 	/* When scanning on-channel, the first-callback means completed. */
-    /* LAMT
-     * SCAN_ONCHANNEL_SCANNING should be deactivated in the function
-     * __ieee80211_start_scan, so it should never be active */
-    /* LAMT END */
 	if (test_bit(SCAN_ONCHANNEL_SCANNING, &local->scanning)) {
 		aborted = test_and_clear_bit(SCAN_ABORTED, &local->scanning);
 		goto out_complete;
 	}
 
-    /* LAMT
-     * SCAN_COMPLETED is set by the function  should be set by the function ieee80211_scan_completed, that is invoked by the hardware. Since the hardware scan should never be invoked, this bit should never be active */
-    /* LAMT END */
 	if (test_and_clear_bit(SCAN_COMPLETED, &local->scanning)) {
 		aborted = test_and_clear_bit(SCAN_ABORTED, &local->scanning);
 		goto out_complete;
@@ -1015,12 +767,6 @@ void ieee80211_scan_work(struct work_struct *work)
 	 * as long as no delay is required advance immediately
 	 * without scheduling a new work
 	 */
-        
-
-    /* LAMT */
-    chan = local->hw.conf.chandef.chan->center_freq;
-    /* END LAMT */
-
 	do {
 		if (!ieee80211_sdata_running(sdata)) {
 			aborted = true;
@@ -1029,10 +775,6 @@ void ieee80211_scan_work(struct work_struct *work)
 
 		switch (local->next_scan_state) {
 		case SCAN_DECISION:
-
-            /* LAMT */
-            printk(KERN_DEBUG "##scan_decision;%s;%s;%u;%lu;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan);
-            /* END LAMT */
 			/* if no more bands/channels left, complete scan */
 			if (local->scan_channel_idx >= local->scan_req->n_channels) {
                 /* LAMT */
@@ -1044,46 +786,18 @@ void ieee80211_scan_work(struct work_struct *work)
 			ieee80211_scan_state_decision(local, &next_delay);
 			break;
 		case SCAN_SET_CHANNEL:
-
-            /* LAMT */
-            printk(KERN_DEBUG "##scan_set_channel;%s;%s;%u;%lu;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan);
 			ieee80211_scan_state_set_channel(local, &next_delay);
 			break;
 		case SCAN_SEND_PROBE:
-
-            /* LAMT */
-            printk(KERN_DEBUG "##scan_send_probe;%s;%s;%u;%lu;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan);
 			ieee80211_scan_state_send_probe(local, &next_delay);
 			break;
-
-            /* LAMT
-             * This new state will be trigered by ieee80211_scan_rx to wait
-             * for Max Channel Time, this is done only if next_scan_state
-             * is SCAN_DECISION.
-             */
-		case SCAN_MAXCT:
-    
-            printk(KERN_DEBUG "##scan_maxct;%s;%s;%u;%lu;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan);
-			ieee80211_scan_state_maxct(local, &next_delay);
-			break;
-            /* END LAMT */
-
 		case SCAN_SUSPEND:
-
-            /* LAMT */
-            printk(KERN_DEBUG "##scan_suspend;%s;%s;%u;%lu;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan);
 			ieee80211_scan_state_suspend(local, &next_delay);
 			break;
 		case SCAN_RESUME:
-
-            /* LAMT */
-            printk(KERN_DEBUG "##scan_resume;%s;%s;%u;%lu;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan);
 			ieee80211_scan_state_resume(local, &next_delay);
 			break;
 		case SCAN_ABORT:
-
-            /* LAMT */
-            printk(KERN_DEBUG "##scan_abort;%s;%s;%u;%lu;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan);
 			aborted = true;
 			goto out_complete;
 		}
