@@ -163,20 +163,10 @@ void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 	size_t baselen;
 	struct ieee802_11_elems elems;
 
-    /* LAMT
-     * Discover networks by only using Probe Response
-     *
-     * TODO
-     * This probably breakes the Passive Scan!!!!!! */
-    /*
 	if (skb->len < 24 ||
 	    (!ieee80211_is_probe_resp(mgmt->frame_control) &&
 	     !ieee80211_is_beacon(mgmt->frame_control)))
 		return;
-    */
-	if (skb->len < 24 || !ieee80211_is_probe_resp(mgmt->frame_control))
-		return;
-    /* END LAMT */
 
 	sdata1 = rcu_dereference(local->scan_sdata);
 	sdata2 = rcu_dereference(local->sched_scan_sdata);
