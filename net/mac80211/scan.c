@@ -478,6 +478,7 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
         minct = 3;
         break;
     }
+    minct = 10;
     minct_jiffies = msecs_to_jiffies(minct);
     printk(KERN_DEBUG "##minct;%s;%s;%u;%lu;%d;%d;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan, minct, minct_jiffies);
 
@@ -553,6 +554,7 @@ static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
         maxct = 3;
         break;
     }
+    maxct = 0;
     maxct_jiffies = msecs_to_jiffies(maxct);
     printk(KERN_DEBUG "##maxct;%s;%s;%u;%lu;%d;%d;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan, maxct, maxct_jiffies);
 
