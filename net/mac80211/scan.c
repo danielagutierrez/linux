@@ -582,7 +582,16 @@ static void ieee80211_scan_state_send_probe(struct ieee80211_local *local,
     /* END LAMT */
 
 	for (i = 0; i < local->scan_req->n_ssids; i++)
-		ieee80211_send_probe_req(
+    {
+        ieee80211_send_probe_req(
+                sdata, NULL,
+                local->scan_req->ssids[i].ssid,
+                local->scan_req->ssids[i].ssid_len,
+                local->scan_req->ie, local->scan_req->ie_len,
+                local->scan_req->rates[band], false,
+                tx_flags, local->hw.conf.chandef.chan, true);
+
+        ieee80211_send_probe_req(
 			sdata, NULL,
 			local->scan_req->ssids[i].ssid,
 			local->scan_req->ssids[i].ssid_len,
@@ -590,7 +599,7 @@ static void ieee80211_scan_state_send_probe(struct ieee80211_local *local,
 			local->scan_req->rates[band], false,
 			tx_flags, local->hw.conf.chandef.chan, true);
 
-	/*
+    }	/*
 	 * After sending probe requests, wait for probe responses
 	 * on the channel.
 	 */
