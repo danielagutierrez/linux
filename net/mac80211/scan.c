@@ -176,9 +176,13 @@ void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 
 	if (ieee80211_is_probe_resp(mgmt->frame_control)) {
 		/* ignore ProbeResp to foreign address */
+        /* LAMT
+         * Take advantage of all Probe Responses
 		if ((!sdata1 || !ether_addr_equal(mgmt->da, sdata1->vif.addr)) &&
 		    (!sdata2 || !ether_addr_equal(mgmt->da, sdata2->vif.addr)))
 			return;
+         */
+        /* END LAMT */
 
         /* LAMT
          * TODO: Is it necessary to use mutex or something similar to assure
