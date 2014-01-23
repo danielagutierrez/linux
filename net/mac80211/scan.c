@@ -163,10 +163,56 @@ void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
 	size_t baselen;
 	struct ieee802_11_elems elems;
 
+    ////////////////
+    // LAMT
+    // Probe Request - Probe Response delay measurement
+    
+    struct ieee80211_mgmt *lamt_mgmt;
+    struct ieee80211_rx_status *lamt_rx_status;
+	struct ieee80211_hdr *hdr;
+
+    // To access timestamp, beacon_interval
+    lamt_mgmt = (void *)skb->data;
+ 
+    // To access the NIC information during the rx
+    lamt_rx_status = IEEE80211_SKB_RXCB(skb);
+    /* End LAMT */
+
 	if (skb->len < 24 ||
 	    (!ieee80211_is_probe_resp(mgmt->frame_control) &&
-	     !ieee80211_is_beacon(mgmt->frame_control)))
+	     !ieee80211_is_beacon(mgmt->frame_control))) {
+
+        /* LAMT 
+         * Log all packets others than Probe Response
+         */
+
+        printk(KERN_DEBUG "##channel_activity;%s;%s;%u;%lu;nic_freq=%u;nic_band=%u;signal=%d;mactime=%llu;hw_permaddr=%pM##\n",
+
+              // filename, function name, line number
+              __FILE__, __func__, __LINE__,
+
+              // MS actual time in jiffies
+              jiffies,
+
+              // MS scanning freq 
+              lamt_rx_status->freq,
+
+              // MS scanning band. What does this mean??
+              lamt_rx_status->band,
+
+              // Signala strength when receiving this frame
+              lamt_rx_status->signal,
+
+              // Value in microseconds of the 64-bit Time Synchronization
+              // Function (TSF) timer when the first data symbol (MPDU)
+              // arrived at the hardware
+              (unsigned long long)lamt_rx_status->mactime,
+              
+              local->hw.wiphy->perm_addr);
+         /* END LAMT */
+
 		return;
+    }
 
 	sdata1 = rcu_dereference(local->scan_sdata);
 	sdata2 = rcu_dereference(local->sched_scan_sdata);
@@ -183,19 +229,10 @@ void ieee80211_scan_rx(struct ieee80211_local *local, struct sk_buff *skb)
     // Function (TSF) timer when the first data symbol (MPDU) arrived at
     // the hardware
 
-    struct ieee80211_mgmt *lamt_mgmt;
-    struct ieee80211_rx_status *lamt_rx_status;
-	struct ieee80211_hdr *hdr;
-
 	hdr = (struct ieee80211_hdr *)skb->data;
 
     if(ieee80211_is_probe_resp(mgmt->frame_control)) {
-        // To access timestamp, beacon_interval
-        lamt_mgmt = (void *)skb->data;
- 
-        // To access the NIC information during the rx
-        lamt_rx_status = IEEE80211_SKB_RXCB(skb);
-
+        
         u8 lamt_retry = 0;
         if (ieee80211_has_retry(mgmt->frame_control)) {
             lamt_retry = 1;
