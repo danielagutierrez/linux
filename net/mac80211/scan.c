@@ -311,6 +311,8 @@ void ieee80211_scan_completed(struct ieee80211_hw *hw, bool aborted)
 {
 	struct ieee80211_local *local = hw_to_local(hw);
 
+    printk(KERN_DEBUG "##scan_completed;%s;%s;%u;%lu;%lu;%lu##\n", __FILE__, __func__, __LINE__, jiffies, local->leave_oper_channel_time, local->leave_oper_channel_time - jiffies);
+
 	trace_api_scan_completed(local, aborted);
 
 	set_bit(SCAN_COMPLETED, &local->scanning);
