@@ -714,7 +714,7 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
         minct = 3;
         break;
     }
-    minct = 15;
+    minct = 20;
     minct_jiffies = msecs_to_jiffies(minct);
     printk(KERN_DEBUG "##minct;%s;%s;%u;%lu;%d;%d;%d##\n", __FILE__, __func__, __LINE__, jiffies, chan, minct, minct_jiffies);
 
