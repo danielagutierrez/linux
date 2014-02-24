@@ -627,7 +627,7 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
         break;
         // 2
     case 2417:
-        minct = 3;
+        minct = 10;
         break;
         // 3
     case 2422:
@@ -635,7 +635,7 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
         break;
         // 4
     case 2427:
-        minct = 6;
+        minct = 0;
         break;
         // 5
     case 2432:
@@ -643,7 +643,7 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
         break;
         // 6
     case 2437:
-        minct = 15;
+        minct = 0;
         break;
         // 7
     case 2442:
@@ -651,7 +651,7 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
         break;
         // 8
     case 2447:
-        minct = 7;
+        minct = 0;
         break;
         // 9
     case 2452:
@@ -659,7 +659,7 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
         break;
         // 10
     case 2457:
-        minct = 15;
+        minct = 0;
         break;
         // 11
     case 2462:
@@ -702,7 +702,7 @@ static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
         break;
         // 2
     case 2417:
-        maxct = 3;
+        maxct = 0;
         break;
         // 3
     case 2422:
@@ -710,7 +710,7 @@ static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
         break;
         // 4
     case 2427:
-        maxct = 3;
+        maxct = 0;
         break;
         // 5
     case 2432:
@@ -718,7 +718,7 @@ static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
         break;
         // 6
     case 2437:
-        maxct = 13;
+        maxct = 0;
         break;
         // 7
     case 2442:
@@ -726,7 +726,7 @@ static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
         break;
         // 8
     case 2447:
-        maxct = 3;
+        maxct = 0;
         break;
         // 9
     case 2452:
@@ -734,7 +734,7 @@ static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
         break;
         // 10
     case 2457:
-        maxct = 10;
+        maxct = 0;
         break;
         // 11
     case 2462:
