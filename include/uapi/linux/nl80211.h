@@ -1436,6 +1436,14 @@ enum nl80211_commands {
  *	allowed to be used with the first @NL80211_CMD_SET_STATION command to
  *	update a TDLS peer STA entry.
  *
+ * @NL80211_ATTR_MIN_CHANNEL_TIME: MinChannelTime - Minimum time (in TU) to
+ *     spend on each channel when scanning (used for active scans). If not
+ *     included, the driver will use its default value. u32 attribute.
+ * @NL80211_ATTR_MAX_CHANNEL_TIME: MaxChannelTime - Maximum time (in TU) to
+ *     spend on each channel when scanning (used for both active and passive
+ *     scans). If not included, the driver will use its default value. u32
+ *     attribute.
+ *
  * @NL80211_ATTR_MAX: highest attribute number currently defined
  * @__NL80211_ATTR_AFTER_LAST: internal use
  */
@@ -1735,6 +1743,9 @@ enum nl80211_attrs {
 	NL80211_ATTR_MAX_CRIT_PROT_DURATION,
 
 	NL80211_ATTR_PEER_AID,
+
+        NL80211_ATTR_MIN_CHANNEL_TIME,
+        NL80211_ATTR_MAX_CHANNEL_TIME,
 
 	/* add attributes here, update the policy in nl80211.c */
 

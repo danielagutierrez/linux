@@ -349,6 +349,8 @@ static const struct nla_policy nl80211_policy[NL80211_ATTR_MAX+1] = {
 	[NL80211_ATTR_IE_RIC] = { .type = NLA_BINARY,
 				  .len = IEEE80211_MAX_DATA_LEN },
 	[NL80211_ATTR_PEER_AID] = { .type = NLA_U16 },
+        [NL80211_ATTR_MIN_CHANNEL_TIME] = { .type = NLA_U32 },
+        [NL80211_ATTR_MAX_CHANNEL_TIME] = { .type = NLA_U32 },
 };
 
 /* policy for the key attributes */
@@ -5264,6 +5266,13 @@ static int nl80211_trigger_scan(struct sk_buff *skb, struct genl_info *info)
 
 	request->no_cck =
 		nla_get_flag(info->attrs[NL80211_ATTR_TX_NO_CCK_RATE]);
+
+        if (info->attrs[NL80211_ATTR_MIN_CHANNEL_TIME])
+                request->min_chan_time = nla_get_u32(
+                        info->attrs[NL80211_ATTR_MIN_CHANNEL_TIME]);
+        if (info->attrs[NL80211_ATTR_MAX_CHANNEL_TIME])
+                request->max_chan_time = nla_get_u32(
+                        info->attrs[NL80211_ATTR_MAX_CHANNEL_TIME]);
 
 	request->wdev = wdev;
 	request->wiphy = &rdev->wiphy;

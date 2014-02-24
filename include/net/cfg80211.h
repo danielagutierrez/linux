@@ -1295,6 +1295,11 @@ struct cfg80211_ssid {
  * @aborted: (internal) scan request was notified as aborted
  * @notified: (internal) scan request was notified as done or aborted
  * @no_cck: used to send probe requests at non CCK rate in 2GHz band
+ * @min_chan_time: MinChannelTime in TUs; time to spend waiting for 
+ *   PHY-CCA.indication (channel busy) in Active scan; 0 to indicate that driver
+ *   default value to be used
+ * @max_chan_time: MaxChannelTime in TUs; time to spend waiting for Beacon or
+ *   Probe Response frames; 0 to indicate that driver default value to be used
  */
 struct cfg80211_scan_request {
 	struct cfg80211_ssid *ssids;
@@ -1303,6 +1308,8 @@ struct cfg80211_scan_request {
 	const u8 *ie;
 	size_t ie_len;
 	u32 flags;
+        unsigned int min_chan_time;
+        unsigned int max_chan_time;
 
 	u32 rates[IEEE80211_NUM_BANDS];
 
