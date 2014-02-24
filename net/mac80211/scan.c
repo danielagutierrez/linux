@@ -643,7 +643,7 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
         break;
         // 6
     case 2437:
-        minct = 0;
+        minct = 15;
         break;
         // 7
     case 2442:
@@ -718,7 +718,7 @@ static int ieee80211_scan_calculate_maxct(struct ieee80211_local *local)
         break;
         // 6
     case 2437:
-        maxct = 0;
+        maxct = 13;
         break;
         // 7
     case 2442:
