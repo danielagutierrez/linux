@@ -627,7 +627,7 @@ static int ieee80211_scan_calculate_minct(struct ieee80211_local *local)
         break;
         // 2
     case 2417:
-        minct = 10;
+        minct = 0;
         break;
         // 3
     case 2422:
